@@ -2,14 +2,17 @@ import React, { createContext, useContext, useState } from 'react';
 import './App.css';
 
 const initialBooks = [
-  { id: 1, title: 'React in Action', author: 'Mark T. Thomas' },
-  { id: 2, title: 'JavaScript: The Good Parts', author: 'Douglas Crockford' },
+  // ...
 ];
 
 const BookContext = createContext();
 
-const BookProvider = ({ children }) => {
+const App = () => {
   const [books, setBooks] = useState(initialBooks);
+  const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
+  const [titleError, setTitleError] = useState('');
+  const [authorError, setAuthorError] = useState('');
 
   const addBook = (book) => {
     setBooks([...books, book]);
@@ -19,18 +22,28 @@ const BookProvider = ({ children }) => {
     setBooks(books.filter(book => book.id !== id));
   };
 
-  return (
-    <BookContext.Provider value={{ books, addBook, removeBook }}>
-      {children}
-    </BookContext.Provider>
-  );
-};
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-const BookList = () => {
-  const { books } = useContext(BookContext);
+    if (!title.trim()) {
+      setTitleError('Lütfen bir başlık girin');
+      return;
+    }
+
+    if (!author.trim()) {
+      setAuthorError('Lütfen bir yazar adı girin');
+      return;
+    }
+
+    addBook({ id: Date.now(), title, author });
+    setTitle('');
+    setAuthor('');
+    setTitleError('');
+    setAuthorError('');
+  };
 
   return (
-    <div>
+    <div className="App">
       <h2>Kitap Listesi</h2>
       <ul>
         {books.map(book => (
@@ -39,45 +52,37 @@ const BookList = () => {
           </li>
         ))}
       </ul>
-    </div>
-  );
-};
 
-const BookForm = () => {
-  const { addBook } = useContext(BookContext);
-  const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
+      <div className="book-form">
+        <h2>Yeni Kitap Ekle</h2>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Kitap Adı"
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              setTitleError('');
+            }}
+          />
+          {titleError && <p className="error-message">{titleError}</p>}
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (title && author) {
-      addBook({ id: Date.now(), title, author });
-      setTitle('');
-      setAuthor('');
-    }
-  };
+          <input
+            type="text"
+            placeholder="Yazar"
+            value={author}
+            onChange={(e) => {
+              setAuthor(e.target.value);
+              setAuthorError('');
+            }}
+          />
+          {authorError && <p className="error-message">{authorError}</p>}
 
-  return (
-    <div>
-      <h2>Yeni Kitap Ekle</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Kitap Adı" value={title} onChange={(e) => setTitle(e.target.value)} />
-        <input type="text" placeholder="Yazar" value={author} onChange={(e) => setAuthor(e.target.value)} />
-        <button type="submit">Ekle</button>
-      </form>
-    </div>
-  );
-};
-
-function App() {
-  return (
-    <BookProvider>
-      <div className="App">
-        <BookList />
-        <BookForm />
+          <button type="submit">Ekle</button>
+        </form>
       </div>
-    </BookProvider>
+    </div>
   );
-}
+};
 
 export default App;
